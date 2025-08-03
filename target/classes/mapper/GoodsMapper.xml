@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- namespace 必须与 Mapper 接口全类名一致 -->
+<mapper namespace="com.project.mapper.GoodsMapper">
+
+    <!-- 新增商品 -->
+    <insert id="insert" parameterType="com.project.model.GoodsModel">
+        INSERT INTO goods(good_id, good_name, good_size, good_price, good_num)
+        VALUES(#{goodId}, #{goodName}, #{goodSize}, #{goodPrice}, #{goodNum})
+    </insert>
+
+    <!-- 根据 ID 删除 -->
+    <delete id="deleteById">
+        DELETE FROM goods WHERE good_id = #{id}
+    </delete>
+
+    <!-- 全量更新 -->
+    <update id="update" parameterType="com.project.model.GoodsModel">
+        UPDATE goods
+        SET good_name = #{goodName},
+            good_size = #{goodSize},
+            good_price = #{goodPrice},
+            good_num = #{goodNum}
+        WHERE good_id = #{goodId}
+    </update>
+
+    <!-- 调整库存 -->
+    <update id="updateStock">
+        UPDATE goods
+        SET good_num = good_num + #{quantity}
+        WHERE good_id = #{id}
+    </update>
+
+    <!-- 根据 ID 查询 -->
+    <select id="selectById" resultType="com.project.model.GoodsModel">
+        SELECT * FROM goods WHERE good_id = #{id}
+    </select>
+
+    <!-- 根据名称查询 -->
+    <select id="selectByName" resultType="com.project.model.GoodsModel">
+        <!-- %#{name}% 表示匹配包含该名称的所有记录 -->
+        SELECT * FROM goods WHERE good_name LIKE CONCAT('%', #{name}, '%')
+    </select>
+
+    <!-- 查询所有 -->
+    <select id="selectAll" resultType="com.project.model.GoodsModel">
+        SELECT * FROM goods
+    </select>
+
+    <!-- 统计 ID 存在数量 -->
+    <select id="countById" resultType="int">
+        SELECT COUNT(*) FROM goods WHERE good_id = #{id}
+    </select>
+
+    <!-- 统计名称存在数量 -->
+    <select id="countByName" resultType="int">
+        SELECT COUNT(*) FROM goods WHERE good_name = #{name}
+    </select>
+
+</mapper>
