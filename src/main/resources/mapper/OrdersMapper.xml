@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.project.mapper.OrdersMapper">
+
+    <!--
+      【核心修改】
+      结果集映射：处理 OrdersModel 与嵌套的 GoodsModel 的关系
+      1. 使用 <association> 标签来映射 OrdersModel 中的 'good' 属性。
+      2. 'property="good"' 指向 OrdersModel 中的 'good' 字段。
+      3. 'javaType="com.project.model.GoodsModel"' 指定了 'good' 字段的类型。
+      4. <association> 内部定义了如何将数据库列映射到 GoodsModel 的属性上。
+    -->
+    <resultMap id="OrdersWithGoodsResultMap" type="com.project.model.OrdersModel">
+        <!-- 订单基本字段 -->
+        <id property="orderID" column="order_id"/>
+        <result property="orderTime" column="order_time"/>
+        <result property="customerName" column="customer_name"/>
+        <result property="purchaseNum" column="purchase_num"/>
+        <result property="totalPrice" column="total_price"/>
+
+        <!-- 嵌套的 GoodsModel 对象映射 -->
+        <association property="good" javaType="com.project.model.GoodsModel">
+            <id property="goodID" column="good_id"/>
+            <result property="goodName" column="good_name"/>
+            <result property="goodPrice" column="good_price"/>
+            <result property="goodSize" column="good_size"/>
+        </association>
+    </resultMap>
+
+    <!--
+      【修改】
+      创建新订单：使用点分路径(.)从嵌套的 good 对象中取值
+    -->
+    <insert id="create" parameterType="com.project.model.OrdersModel">
+        INSERT INTO orders (
+            order_id,
+            order_time,
+            customer_name,
+            good_id,
+            good_name,
+            good_price,
+            good_size,
+            purchase_num,
+            total_price
+        ) VALUES (
+            #{orderID},
+            #{orderTime},
+            #{customerName},
+            #{good.goodID},
+            #{good.goodName},
+            #{good.goodPrice},
+            #{good.goodSize},
+            #{purchaseNum},
+            #{totalPrice}
+        )
+    </insert>
+
+    <!-- 查询所有订单 -->
+    <select id="getAllOrders" resultMap="OrdersWithGoodsResultMap">
+        SELECT
+            order_id,
+            order_time,
+            customer_name,
+            purchase_num,
+            total_price,
+            good_id,
+            good_name,
+            good_price,
+            good_size
+        FROM orders
+        ORDER BY order_time DESC
+    </select>
+
+    <!-- 根据ID查询订单 -->
+    <select id="getById" parameterType="String" resultMap="OrdersWithGoodsResultMap">
+        SELECT
+            order_id,
+            order_time,
+            customer_name,
+            purchase_num,
+            total_price,
+            good_id,
+            good_name,
+            good_price,
+            good_size
+        FROM orders
+        WHERE order_id = #{orderId}
+    </select>
+
+    <!-- 分页查询 -->
+    <select id="getOrdersByPage" resultMap="OrdersWithGoodsResultMap">
+        SELECT
+            order_id,
+            order_time,
+            customer_name,
+            purchase_num,
+            total_price,
+            good_id,
+            good_name,
+            good_price,
+            good_size
+        FROM orders
+        ORDER BY order_time DESC
+        LIMIT #{offset}, #{pageSize}
+    </select>
+
+    <!-- 根据时间段查询 -->
+    <select id="getOrderByTime" resultMap="OrdersWithGoodsResultMap">
+        SELECT
+            order_id,
+            order_time,
+            customer_name,
+            purchase_num,
+            total_price,
+            good_id,
+            good_name,
+            good_price,
+            good_size
+        FROM orders
+        WHERE order_time BETWEEN #{startTime} AND #{endTime}
+        ORDER BY order_time DESC
+    </select>
+
+    <!-- 物理删除订单 -->
+    <delete id="delete" parameterType="String">
+        DELETE FROM orders
+        WHERE order_id = #{orderId}
+    </delete>
+</mapper>
