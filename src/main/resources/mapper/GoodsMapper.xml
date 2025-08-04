@@ -33,30 +33,42 @@
         WHERE good_id = #{id}
     </update>
 
-    <!-- 根据 ID 查询 -->
+    <!-- 根据 ID 查询（仅查有效商品） -->
     <select id="selectById" resultType="com.project.model.GoodsModel">
-        SELECT * FROM goods WHERE good_id = #{id}
+        SELECT * FROM goods
+        WHERE good_id = #{id} AND is_deleted = 0 AND status = 1
     </select>
 
-    <!-- 根据名称查询 -->
+    <!-- 查看剩余库存（必须确保商品有效）-->
+    <select id="getStock" resultType="int">
+        SELECT good_num FROM goods
+        WHERE good_id = #{id} AND is_deleted = 0 AND status = 1
+    </select>
+
+    <!-- 根据名称模糊查询（仅查有效且上架商品） -->
     <select id="selectByName" resultType="com.project.model.GoodsModel">
-        <!-- %#{name}% 表示匹配包含该名称的所有记录 -->
-        SELECT * FROM goods WHERE good_name LIKE CONCAT('%', #{name}, '%')
+        SELECT * FROM goods
+        WHERE good_name LIKE CONCAT('%', #{name}, '%')
+          AND is_deleted = 0
+          AND status = 1
     </select>
 
-    <!-- 查询所有 -->
+    <!-- 查询所有有效且上架商品 -->
     <select id="selectAll" resultType="com.project.model.GoodsModel">
         SELECT * FROM goods
+        WHERE is_deleted = 0 AND status = 1
     </select>
 
-    <!-- 统计 ID 存在数量 -->
+    <!-- 统计指定 ID 的商品数量（默认统计有效商品）-->
     <select id="countById" resultType="int">
-        SELECT COUNT(*) FROM goods WHERE good_id = #{id}
+        SELECT COUNT(*) FROM goods
+        WHERE good_id = #{id} AND is_deleted = 0
     </select>
 
-    <!-- 统计名称存在数量 -->
+    <!-- 统计商品名称是否存在（默认统计有效商品）-->
     <select id="countByName" resultType="int">
-        SELECT COUNT(*) FROM goods WHERE good_name = #{name}
+        SELECT COUNT(*) FROM goods
+        WHERE good_name = #{name} AND is_deleted = 0
     </select>
 
 </mapper>

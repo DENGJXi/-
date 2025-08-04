@@ -54,8 +54,13 @@ public class OrderController {
         return ResponseEntity.ok(ordersList);
     }
 
-    @PostMapping("/createOrder")
-    public ResponseEntity<OrdersModel> createOrder(@RequestBody CreateOrderRequest request) {
+    /**
+     * 下单
+     * @param request DTO返回参数包括 CustomerName GoodID PurchaseNum
+     * @return
+     */
+    @PostMapping("/placeOrder")
+    public ResponseEntity<OrdersModel> placeOrder(@RequestBody CreateOrderRequest request) {
         //查找商品是否存在
         try {
             GoodsModel good = goodService.getGoodById(request.getGoodId());
@@ -69,8 +74,7 @@ public class OrderController {
             order.setGood(good);
             order.setPurchaseNum(request.getPurchaseNum());
             order.setTotalPrice(request.getPurchaseNum() * good.getGoodPrice());
-
-            boolean success = orderService.createOrder(order);
+            boolean success = orderService.placeOrder(order);
             if (success) {
                 return ResponseEntity.status(HttpStatus.CREATED).body(order);
             } else {

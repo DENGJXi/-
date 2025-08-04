@@ -2,6 +2,7 @@ package com.project.service.impl;
 
 import com.fasterxml.jackson.databind.util.BeanUtil;
 import com.project.dao.OrdersDao;
+import com.project.mapper.GoodsMapper;
 import com.project.mapper.OrdersMapper;
 import com.project.model.OrdersModel;
 import com.project.service.OrderService;
@@ -21,13 +22,20 @@ public class OrderServiceImp implements OrderService {
 
     @Autowired
     private OrdersMapper ordersMapper;
+    @Autowired
+    private GoodsMapper goodsMapper;
 
     private static final Logger log = LoggerFactory.getLogger(OrderServiceImp.class);
 
     @Override
-    public boolean createOrder(OrdersModel order) {
+    public boolean placeOrder(OrdersModel order) {
+        if(order.getPurchaseNum() > goodsMapper.getStock(order.getGood().getGoodID())){
+            throw new RuntimeException("库存不足");
+        }
+        goodsMapper.updateStock(order.getGood().getGoodID(),-order.getPurchaseNum());
         return ordersMapper.create(order) > 0;
     }
+
     @Override
     public boolean deleteOrder(String id) {
         return ordersMapper.delete(id) > 0;

@@ -20,4 +20,6 @@ public interface GoodsMapper {
 
     int countById(String id);                // ✅
     int countByName(String name);            // ✅
+
+    int getStock(String id);
 }

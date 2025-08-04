@@ -1,25 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.project.mapper.OrdersMapper">
 
-    <!--
-      【核心修改】
-      结果集映射：处理 OrdersModel 与嵌套的 GoodsModel 的关系
-      1. 使用 <association> 标签来映射 OrdersModel 中的 'good' 属性。
-      2. 'property="good"' 指向 OrdersModel 中的 'good' 字段。
-      3. 'javaType="com.project.model.GoodsModel"' 指定了 'good' 字段的类型。
-      4. <association> 内部定义了如何将数据库列映射到 GoodsModel 的属性上。
-    -->
+    <!-- 映射 OrdersModel 与 GoodsModel 的嵌套关系 -->
     <resultMap id="OrdersWithGoodsResultMap" type="com.project.model.OrdersModel">
-        <!-- 订单基本字段 -->
         <id property="orderID" column="order_id"/>
         <result property="orderTime" column="order_time"/>
         <result property="customerName" column="customer_name"/>
         <result property="purchaseNum" column="purchase_num"/>
         <result property="totalPrice" column="total_price"/>
 
-        <!-- 嵌套的 GoodsModel 对象映射 -->
+        <!-- 外键关联的商品对象 -->
         <association property="good" javaType="com.project.model.GoodsModel">
             <id property="goodID" column="good_id"/>
             <result property="goodName" column="good_name"/>
@@ -28,98 +22,94 @@
         </association>
     </resultMap>
 
-    <!--
-      【修改】
-      创建新订单：使用点分路径(.)从嵌套的 good 对象中取值
-    -->
+    <!-- 插入订单：嵌套 good 的属性 -->
     <insert id="create" parameterType="com.project.model.OrdersModel">
         INSERT INTO orders (
             order_id,
             order_time,
             customer_name,
             good_id,
-            good_name,
-            good_price,
-            good_size,
             purchase_num,
             total_price
         ) VALUES (
-            #{orderID},
-            #{orderTime},
-            #{customerName},
-            #{good.goodID},
-            #{good.goodName},
-            #{good.goodPrice},
-            #{good.goodSize},
-            #{purchaseNum},
-            #{totalPrice}
-        )
+                     #{orderID},
+                     #{orderTime},
+                     #{customerName},
+                     #{good.goodID},
+                     #{purchaseNum},
+                     #{totalPrice}
+                 )
     </insert>
 
-    <!-- 查询所有订单 -->
+    <!-- 查询所有订单（JOIN 商品表） -->
     <select id="getAllOrders" resultMap="OrdersWithGoodsResultMap">
         SELECT
-            order_id,
-            order_time,
-            customer_name,
-            purchase_num,
-            total_price,
-            good_id,
-            good_name,
-            good_price,
-            good_size
-        FROM orders
-        ORDER BY order_time DESC
+            o.order_id,
+            o.order_time,
+            o.customer_name,
+            o.purchase_num,
+            o.total_price,
+            g.good_id,
+            g.good_name,
+            g.good_price,
+            g.good_size
+        FROM orders o
+                 JOIN goods g ON o.good_id = g.good_id
+        ORDER BY o.order_time DESC
     </select>
 
     <!-- 根据ID查询订单 -->
     <select id="getById" parameterType="String" resultMap="OrdersWithGoodsResultMap">
         SELECT
-            order_id,
-            order_time,
-            customer_name,
-            purchase_num,
-            total_price,
-            good_id,
-            good_name,
-            good_price,
-            good_size
-        FROM orders
-        WHERE order_id = #{orderId}
+            o.order_id,
+            o.order_time,
+            o.customer_name,
+            o.purchase_num,
+            o.total_price,
+            g.good_id,
+            g.good_name,
+            g.good_price,
+            g.good_size
+        FROM orders o
+                 JOIN goods g ON o.good_id = g.good_id
+        WHERE o.order_id = #{orderId}
+        ORDER BY o.order_time DESC
     </select>
 
-    <!-- 分页查询 -->
+    <!-- 分页查询订单（修正：添加 JOIN） -->
     <select id="getOrdersByPage" resultMap="OrdersWithGoodsResultMap">
         SELECT
-            order_id,
-            order_time,
-            customer_name,
-            purchase_num,
-            total_price,
-            good_id,
-            good_name,
-            good_price,
-            good_size
-        FROM orders
-        ORDER BY order_time DESC
+            o.order_id,
+            o.order_time,
+            o.customer_name,
+            o.purchase_num,
+            o.total_price,
+            g.good_id,
+            g.good_name,
+            g.good_price,
+            g.good_size
+        FROM orders o
+                 JOIN goods g ON o.good_id = g.good_id
+        ORDER BY o.order_time DESC
         LIMIT #{offset}, #{pageSize}
     </select>
 
-    <!-- 根据时间段查询 -->
+    <!-- 根据时间段查询订单（修正：添加 JOIN） -->
     <select id="getOrderByTime" resultMap="OrdersWithGoodsResultMap">
         SELECT
-            order_id,
-            order_time,
-            customer_name,
-            purchase_num,
-            total_price,
-            good_id,
-            good_name,
-            good_price,
-            good_size
-        FROM orders
-        WHERE order_time BETWEEN #{startTime} AND #{endTime}
-        ORDER BY order_time DESC
+            o.order_id,
+            o.order_time,
+            o.customer_name,
+            o.purchase_num,
+            o.total_price,
+            g.good_id,
+            g.good_name,
+            g.good_price,
+            g.good_size
+        FROM orders o
+                 JOIN goods g ON o.good_id = g.good_id
+        WHERE o.order_time BETWEEN #{startTime} AND #{endTime}
+        ORDER BY o.order_time DESC
     </select>
 
     <!-- 物理删除订单 -->

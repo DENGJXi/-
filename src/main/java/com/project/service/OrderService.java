@@ -12,7 +12,7 @@ public interface OrderService {
      * @param order
      * @return
      */
-    boolean createOrder(OrdersModel order);
+    boolean placeOrder(OrdersModel order);
 
     /**
      * 根据订单id删除订单（删）
