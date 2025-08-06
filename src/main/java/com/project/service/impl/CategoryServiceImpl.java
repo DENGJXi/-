@@ -58,7 +58,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public ResponseEntity<Void> deleteCategoryById(Long id) {
         if(id==null||id == 0){
-            log.warn("该类别id不合法,请重试");
+            log.warn("该分类id不合法,请重试");
             return ResponseEntity.badRequest().build();
         }
         int result = categoryMapper.deleteById(id);
@@ -69,6 +69,44 @@ public class CategoryServiceImpl implements CategoryService {
             log.info("分类删除失败");
             return ResponseEntity.badRequest().build();
         }
+    }
+
+    @Override
+    public ResponseEntity<CategoryResponseDTO> selectById(Long id) {
+        if(id==null||id == 0){
+            log.warn("该分类id不合法");
+            return ResponseEntity.badRequest().build();
+        }
+        CategoryModel category = categoryMapper.selectById(id);
+        if(category == null){
+            log.warn("找不到该分类");
+        }
+        CategoryResponseDTO categoryResponseDTO = convertToResponseDTO(category);
+        return ResponseEntity.ok(categoryResponseDTO);
+    }
+
+    @Override
+    public ResponseEntity<CategoryResponseDTO> updateCategory(Long id, CategoryRequestDTO categoryDTO) {
+        if(categoryDTO == null){
+            log.warn("更新商品分类失败，更新内容为空");
+        }
+        CategoryModel category = categoryMapper.selectById(id);
+        CategoryModel newCategory = new CategoryModel();
+        BeanUtils.copyProperties(categoryDTO,newCategory);
+        //使用原始id和创建时间
+        newCategory.setId(category.getId());
+        newCategory.setCreateTime(category.getCreateTime());
+        //改变更新时间
+        newCategory.setUpdateTime(LocalDateTime.now());
+        CategoryResponseDTO categoryResponseDTO = convertToResponseDTO(newCategory);
+        int result = categoryMapper.update(newCategory);
+        if(result > 0){
+            log.info("更新商品分类成功");
+            return ResponseEntity.ok(categoryResponseDTO);
+        }
+        log.error("更新商品分类失败");
+        return ResponseEntity.badRequest().build();
+
     }
 
     private CategoryResponseDTO convertToResponseDTO(CategoryModel category){

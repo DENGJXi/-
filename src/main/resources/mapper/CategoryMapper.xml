@@ -29,7 +29,7 @@
             status = #{status},
             sort = #{sort},
             update_time = NOW()
-        WHERE category_id = #{categoryId}
+        WHERE id = #{id}
     </update>
 
     <!-- 删除 -->

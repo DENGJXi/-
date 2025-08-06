@@ -18,6 +18,15 @@ public class CategoryController {
     private CategoryService categoryService;
 
     /**
+     * 根据分类id查找分类
+     * @param id
+     * @return
+     */
+    @GetMapping("/selectById")
+    public ResponseEntity<CategoryResponseDTO> selectCategoryById(@RequestParam Long id){
+        return categoryService.selectById(id);
+    }
+    /**
      * 查询所有商品种类
      * @return
      */
@@ -44,5 +53,15 @@ public class CategoryController {
     @DeleteMapping("/deleteCategory")
     public ResponseEntity<Void> deleteCategory(@RequestParam Long id){
         return categoryService.deleteCategoryById(id);
+    }
+
+    /**
+     * 更新商品分类信息
+     * @param category
+     * @return
+     */
+    @PostMapping("/updateCategory")
+    public ResponseEntity<CategoryResponseDTO> updateCategory(@RequestParam Long id, @RequestBody CategoryRequestDTO category){
+        return categoryService.updateCategory(id,category);
     }
 }
