@@ -8,8 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 public class GoodServiceImp implements GoodService {
@@ -67,7 +66,6 @@ public class GoodServiceImp implements GoodService {
             return null;
         }
     }
-
     /**
      * 根据商品名称删除（实际应根据ID删除，名称可能不唯一）
      */

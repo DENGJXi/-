@@ -17,12 +17,14 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/category/**").permitAll()
                         .requestMatchers("/orders/**").permitAll()
                         .requestMatchers("/goods/**").permitAll()
                         .requestMatchers("/test/public").permitAll()
                         .requestMatchers("/api/product/public/**").permitAll()  // 公开接口
                         .requestMatchers("/api/product/add").hasRole("ADMIN")   // 仅 ADMIN 可访问
                         .requestMatchers("/test/admin", "/api/admin/**").hasRole("ADMIN")
+
                         .anyRequest().authenticated()
                 )
                 .csrf(csrf -> csrf.disable())
