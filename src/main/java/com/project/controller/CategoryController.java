@@ -36,5 +36,13 @@ public class CategoryController {
         return categoryService.addCategory(category);
     }
 
-
+    /**
+     * 删除商品分类
+     * @param id
+     * @return
+     */
+    @DeleteMapping("/deleteCategory")
+    public ResponseEntity<Void> deleteCategory(@RequestParam Long id){
+        return categoryService.deleteCategoryById(id);
+    }
 }

@@ -20,4 +20,6 @@ public interface CategoryService {
      * @return
      */
     ResponseEntity<CategoryResponseDTO> addCategory(CategoryRequestDTO category);
+
+    ResponseEntity<Void> deleteCategoryById(Long id);
 }

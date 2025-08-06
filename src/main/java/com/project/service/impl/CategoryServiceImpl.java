@@ -55,6 +55,22 @@ public class CategoryServiceImpl implements CategoryService {
 
     }
 
+    @Override
+    public ResponseEntity<Void> deleteCategoryById(Long id) {
+        if(id==null||id == 0){
+            log.warn("该类别id不合法,请重试");
+            return ResponseEntity.badRequest().build();
+        }
+        int result = categoryMapper.deleteById(id);
+        if(result > 0){
+            log.info("分类删除成功");
+            return ResponseEntity.noContent().build();
+        }else{
+            log.info("分类删除失败");
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
     private CategoryResponseDTO convertToResponseDTO(CategoryModel category){
         CategoryResponseDTO dto = new CategoryResponseDTO();
         BeanUtils.copyProperties(category,dto);

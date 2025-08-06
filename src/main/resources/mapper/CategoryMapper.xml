@@ -12,7 +12,7 @@
 
     <!-- 根据ID查询 -->
     <select id="selectById" parameterType="long" resultType="com.project.model.CategoryModel">
-        SELECT * FROM category WHERE category_id = #{id}
+        SELECT * FROM category WHERE id = #{id}
     </select>
 
     <!-- 插入 -->
@@ -34,7 +34,7 @@
 
     <!-- 删除 -->
     <delete id="deleteById" parameterType="long">
-        DELETE FROM category WHERE category_id = #{id}
+        DELETE FROM category WHERE id = #{id}
     </delete>
 
 </mapper>
