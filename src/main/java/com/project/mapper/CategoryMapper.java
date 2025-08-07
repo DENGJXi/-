@@ -1,7 +1,5 @@
 package com.project.mapper;
 
-import com.project.dto.CategoryRequestDTO;
-import com.project.dto.CategoryResponseDTO;
 import com.project.model.CategoryModel;
 import org.apache.ibatis.annotations.Mapper;
 
@@ -24,5 +22,7 @@ public interface CategoryMapper {
 
     // 删除分类
     int deleteById(Long id);
+
+
 }
 

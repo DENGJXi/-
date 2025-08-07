@@ -1,9 +1,11 @@
 package com.project.controller;
 
 import com.project.dao.GoodsDao;
+import com.project.dto.good.GoodStockDTO;
 import com.project.model.GoodsModel;
 import com.project.service.GoodService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,9 +24,6 @@ public class GoodController {
 
     @Autowired
     private GoodService goodsService;
-
-//    @Autowired
-//    private GoodsDao goodsDao;
 
     // 1. 查询所有商品（基础查询）
     @GetMapping("/getAll")
@@ -61,6 +60,12 @@ public class GoodController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
+
+    /**
+     * 根据商品名称查询商品
+     * @param name
+     * @return
+     */
     @GetMapping("/get/{name}")
     public ResponseEntity<GoodsModel> getGoodsByName(@PathVariable String name){
         GoodsModel goods = goodsService.getGoodByName(name);
@@ -72,6 +77,17 @@ public class GoodController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
+
+    /**
+     * 查询商品库存
+     * @param goodId
+     * @return
+     */
+    @GetMapping("/getStock")
+    public ResponseEntity<GoodStockDTO> getStockById(@RequestParam String goodId){
+        return goodsService.getStockById(goodId);
+    }
+
     // 3. 执行修改商品（更新）
     @PostMapping("/edit/{id}")
     public ResponseEntity<Map<String, String>> updateGoods(

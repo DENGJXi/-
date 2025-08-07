@@ -1,7 +1,7 @@
 package com.project.controller;
 
-import com.project.dto.CategoryRequestDTO;
-import com.project.dto.CategoryResponseDTO;
+import com.project.dto.category.CategoryRequestDTO;
+import com.project.dto.category.CategoryResponseDTO;
 import com.project.service.CategoryService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -39,9 +39,9 @@
         WHERE good_id = #{id} AND is_deleted = 0 AND status = 1
     </select>
 
-    <!-- 查看剩余库存（必须确保商品有效）-->
-    <select id="getStock" resultType="int">
-        SELECT good_num FROM goods
+    <!-- 根据id查看商品名称 -->
+    <select id="getNameById" resultType="String">
+        SELECT good_name FROM goods
         WHERE good_id = #{id} AND is_deleted = 0 AND status = 1
     </select>
 

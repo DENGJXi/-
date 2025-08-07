@@ -28,7 +28,7 @@ public class OrderServiceImp implements OrderService {
 
     @Override
     public boolean placeOrder(OrdersModel order) {
-        if(order.getPurchaseNum() > goodsMapper.getStock(order.getGood().getGoodID())){
+        if(order.getPurchaseNum() > goodsMapper.countById(order.getGood().getGoodID())){
             throw new RuntimeException("库存不足");
         }
         goodsMapper.updateStock(order.getGood().getGoodID(),-order.getPurchaseNum());

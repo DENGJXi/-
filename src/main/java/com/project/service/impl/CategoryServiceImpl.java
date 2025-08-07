@@ -1,7 +1,7 @@
 package com.project.service.impl;
 
-import com.project.dto.CategoryRequestDTO;
-import com.project.dto.CategoryResponseDTO;
+import com.project.dto.category.CategoryRequestDTO;
+import com.project.dto.category.CategoryResponseDTO;
 import com.project.mapper.CategoryMapper;
 import com.project.model.CategoryModel;
 import com.project.service.CategoryService;

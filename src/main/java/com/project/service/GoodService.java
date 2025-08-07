@@ -1,8 +1,10 @@
 package com.project.service;
 
 //import com.project.mapper.GoodsMapper;
+import com.project.dto.good.GoodStockDTO;
 import com.project.model.GoodsModel;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import java.util.List;
 
@@ -64,4 +66,11 @@ public interface GoodService {
      * @return
      */
     boolean updateGood(GoodsModel goods);
+
+    /**
+     * 根据商品id查询商品
+     * @param goodId
+     * @return
+     */
+    ResponseEntity<GoodStockDTO> getStockById(String goodId);
 }

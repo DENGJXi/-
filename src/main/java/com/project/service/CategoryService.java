@@ -1,8 +1,7 @@
 package com.project.service;
 
-import com.project.dto.CategoryRequestDTO;
-import com.project.dto.CategoryResponseDTO;
-import com.project.model.CategoryModel;
+import com.project.dto.category.CategoryRequestDTO;
+import com.project.dto.category.CategoryResponseDTO;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;

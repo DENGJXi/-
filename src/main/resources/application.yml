@@ -17,3 +17,5 @@ mybatis:
   mapper-locations: classpath:mapper/*.xml  # XML 扫描路径
   configuration:  # 固定层级
     map-underscore-to-camel-case: true  # 驼峰映射
+
+
