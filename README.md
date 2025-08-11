@@ -12,3 +12,12 @@
 ✅ 使用 RESTful 风格接口设计，前后端分离
 
 ❌ 权限控制（Spring Security）//未实现
+
+✅MySQL索引优化
+## 查询优化效果对比
+
+下图展示了在 `goods` 表上添加联合索引 (`category_id`, `status`, `create_time`) 前后的执行计划差异：
+<img width="1437" height="87" alt="image" src="https://github.com/user-attachments/assets/72f6cb45-d713-447f-9014-65a3dd2b061f" />
+<img width="1539" height="105" alt="image" src="https://github.com/user-attachments/assets/85416b3f-b6a8-41f7-a343-3ec1a41b1aae" />
+<img width="831" height="433" alt="image" src="https://github.com/user-attachments/assets/1c651343-52c8-420a-9d10-b22125cc672d" />
+
