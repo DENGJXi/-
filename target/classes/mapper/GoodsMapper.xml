@@ -27,10 +27,16 @@
     </update>
 
     <!-- 调整库存 -->
-    <update id="updateStock">
+    <update id="increaseStock">
         UPDATE goods
         SET good_num = good_num + #{quantity}
         WHERE good_id = #{id}
+    </update>
+
+    <update id="deductStock">
+        UPDATE goods
+        SET good_num = good_num - #{amount}
+        WHERE good_id = #{id} AND good_num >= #{amount}
     </update>
 
     <!-- 根据 ID 查询（仅查有效商品） -->

@@ -6,7 +6,12 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
   autoconfigure:
     exclude: org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration
-
+  cache:
+    type: redis
+  data:
+    redis:
+      host: localhost
+      port: 6379
 logging:
   level:
     org.springframework.security: DEBUG
@@ -18,4 +23,9 @@ mybatis:
   configuration:  # 固定层级
     map-underscore-to-camel-case: true  # 驼峰映射
 
+# application.yml
+security:
+  jwt:
+    secret: "dfyePqf1v5z+5wzsaWcEnL07C9NetCluwLvVLMdRnMI="
+    expire-ms: 3600000
 

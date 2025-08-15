@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/category")
+@RequestMapping("/categories")
 @Slf4j
 public class CategoryController {
     @Autowired
@@ -22,15 +22,15 @@ public class CategoryController {
      * @param id
      * @return
      */
-    @GetMapping("/selectById")
-    public ResponseEntity<CategoryResponseDTO> selectCategoryById(@RequestParam Long id){
+    @GetMapping("/{id}")
+    public ResponseEntity<CategoryResponseDTO> selectCategoryById(@PathVariable Long id){
         return categoryService.selectById(id);
     }
     /**
      * 查询所有商品种类
      * @return
      */
-    @GetMapping("/selectAll")
+    @GetMapping
     public ResponseEntity<List<CategoryResponseDTO>> selectAll(){
         return categoryService.selectAll();
     }
@@ -40,7 +40,7 @@ public class CategoryController {
      * @param category
      * @return
      */
-    @PostMapping("/addCategory")
+    @PostMapping//@PostMapping：用于创建新资源
     public ResponseEntity<CategoryResponseDTO> addCategory(@RequestBody CategoryRequestDTO category){
         return categoryService.addCategory(category);
     }
@@ -50,7 +50,7 @@ public class CategoryController {
      * @param id
      * @return
      */
-    @DeleteMapping("/deleteCategory")
+    @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteCategory(@RequestParam Long id){
         return categoryService.deleteCategoryById(id);
     }
@@ -60,8 +60,8 @@ public class CategoryController {
      * @param category
      * @return
      */
-    @PostMapping("/updateCategory")
-    public ResponseEntity<CategoryResponseDTO> updateCategory(@RequestParam Long id, @RequestBody CategoryRequestDTO category){
+    @PutMapping("/{id}") //@PutMapping：用于更新已有资源
+    public ResponseEntity<CategoryResponseDTO> updateCategory(@PathVariable Long id, @RequestBody CategoryRequestDTO category){
         return categoryService.updateCategory(id,category);
     }
 }

@@ -31,7 +31,7 @@ public class OrderServiceImp implements OrderService {
         if(order.getPurchaseNum() > goodsMapper.countById(order.getGood().getGoodID())){
             throw new RuntimeException("库存不足");
         }
-        goodsMapper.updateStock(order.getGood().getGoodID(),-order.getPurchaseNum());
+        goodsMapper.deductStock(order.getGood().getGoodID(),order.getPurchaseNum());
         return ordersMapper.create(order) > 0;
     }
 

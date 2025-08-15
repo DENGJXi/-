@@ -5,6 +5,7 @@ import com.project.dto.good.GoodStockDTO;
 import com.project.mapper.GoodsMapper;
 import com.project.model.GoodsModel;
 import com.project.service.GoodService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,15 +19,15 @@ import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class GoodServiceImp implements GoodService {
 
-    @Autowired
-    private GoodsDao goodsDao; // 使用接口而非实现类
-    @Autowired
-    private GoodsMapper goodsMapper;
-    @Autowired
-    private RedisTemplate<String, Object> redisTemplate;
+    private final GoodsDao goodsDao;
+    private final GoodsMapper goodsMapper;
+    private final RedisTemplate<String, Object> redisTemplate;
 
+    private String stockKey(String id){ return "stock:" + id; }
+    private String detailKey(String id){ return "goods:detail:" + id; }
     /**
      * 添加商品（带参数校验）
      */
@@ -71,10 +72,12 @@ public class GoodServiceImp implements GoodService {
             good.setGoodID(UUID.randomUUID().toString());
         }
         if(goodsMapper.insert(good) > 0){
+            redisTemplate.delete(detailKey(good.getGoodID()));
             return good;
         }else{
             return null;
         }
+
     }
     /**
      * 根据商品名称删除（实际应根据ID删除，名称可能不唯一）
@@ -91,12 +94,17 @@ public class GoodServiceImp implements GoodService {
     }
 
     /**
-     * 根据商品ID删除
+     * 根据商品ID删除（顺便删除缓存中的商品缓存和库存缓存）
      */
     @Override
     @Transactional
     public boolean deleteGoodById(String id) {
-        return goodsMapper.deleteById(id)>0;
+        boolean ok = goodsMapper.deleteById(id) > 0;
+        if(ok){
+            redisTemplate.delete(detailKey(id));
+            redisTemplate.delete(stockKey(id));
+        }
+        return ok;
     }
 
     /**
@@ -118,7 +126,20 @@ public class GoodServiceImp implements GoodService {
         if (id == null || id.isEmpty()) {
             throw new IllegalArgumentException("商品ID不能为空");
         }
-        return goodsMapper.selectById(id);
+        ValueOperations<String, Object> ops = redisTemplate.opsForValue();
+        String key = detailKey(id);
+
+        Object cached = ops.get(key);
+        if (cached instanceof GoodsModel) {
+            log.info("商品详情命中 Redis: {}", id);
+            return (GoodsModel) cached;
+        }
+        GoodsModel good = goodsMapper.selectById(id);
+        if (good != null) {
+            ops.set(key, good, 30, TimeUnit.MINUTES);   // TTL 30 分钟
+            log.info("商品详情回源 DB 并写入 Redis: {}", id);
+        }
+        return good;
     }
 
     /**
@@ -139,29 +160,34 @@ public class GoodServiceImp implements GoodService {
             log.warn("更新库存失败：商品ID为空");
             return false;
         }
-        // 检查库存是否足够（如果是减少库存）
-        if (quantity < 0) {
-            GoodsModel good = goodsDao.getById(id);
-            if (good == null || good.getGoodNum() < Math.abs(quantity)) {
-                return false; // 库存不足
-            }
-        }
-        // 1. 更新数据库库存
-        boolean updated = goodsMapper.updateStock(id, quantity) > 0;
 
-        // 2. 清理 Redis 缓存（只有更新成功才清）
-        if (updated) {
-            String redisKey = "stock:" + id;
-            redisTemplate.delete(redisKey);
-            log.info("库存更新成功，已清理缓存 [{}]", redisKey);
+        boolean updated;
+        if (quantity < 0) {
+            // 原子扣减，库存不足时受影响行数=0
+            int changed = goodsMapper.deductStock(id, -quantity);
+            updated = changed > 0;
+            if (!updated) {
+                log.warn("扣减库存失败：库存不足，id={}, amount={}", id, -quantity);
+                return false;
+            }
+        } else if (quantity > 0) {
+            updated = goodsMapper.increaseStock(id, quantity) > 0;
         } else {
-            log.warn("库存更新失败：数据库未受影响");
+            return true; // 改 0 当成功
+        }
+
+        if (updated) {
+            // 失效两个相关缓存：库存&详情（你如果把 GoodModel 放缓存，这一步很关键）
+            redisTemplate.delete("stock:" + id);
+            redisTemplate.delete("goods:detail:" + id);
+            log.info("库存更新成功，已清理缓存 [stock:{}}] 与 [goods:detail:{}]", id, id);
         }
         return updated;
     }
 
+
     /**
-     * 更新商品信息（全量更新）
+     * 更新商品信息（全量更新）顺手失效“详情 + 库存”两个缓存键
      */
     @Override
     @Transactional
@@ -173,52 +199,49 @@ public class GoodServiceImp implements GoodService {
         if (goodsDao.getById(goods.getGoodID()) == null) {
             return false;
         }
-        return goodsMapper.update(goods) > 0;
+        boolean ok = goodsMapper.update(goods) > 0;
+        if(ok){
+            redisTemplate.delete(detailKey(goods.getGoodID()));
+            redisTemplate.delete((stockKey(goods.getGoodID())));
+        }
+        return ok;
     }
 
     @Override
     public ResponseEntity<GoodStockDTO> getStockById(String goodId) {
-        if(goodId == null ){
+        if (goodId == null || goodId.isBlank()) {
             log.warn("库存查询失败，输入的商品id不合规");
             return ResponseEntity.badRequest().build();
         }
-        String redisKey = "stock"+goodId;
+
         ValueOperations<String, Object> ops = redisTemplate.opsForValue();
+        String key = detailKey(goodId);
 
-        long dbStart = System.nanoTime(); // ⏱️ start DB timing
-        GoodsModel good = goodsMapper.selectById(goodId);
-        long dbEnd = System.nanoTime();   // ⏱️ end DB timing
-        if(good == null){
-            log.warn("未找到该商品");
-            return ResponseEntity.notFound().build();
-        }
+        // 1) 先尝试从 Redis 拿整个 GoodModel
+        long redisStart = System.nanoTime();
+        Object obj = ops.get(key);
+        long redisEnd = System.nanoTime();
 
-        //1.尝试读取缓存
-        long redisStart = System.nanoTime(); // ⏱️ start Redis timing
-        Object cached = ops.get(redisKey);
-        long redisEnd = System.nanoTime();   // ⏱️ end Redis timing
-        int stock;
-        if (cached != null) {
-            stock = Integer.parseInt(cached.toString());
-            log.info("库存来自 Redis 缓存");
+        GoodsModel good;
+        if (obj instanceof GoodsModel) {
+            good = (GoodsModel) obj;
+            log.info("详情命中 Redis，key={}，Redis 查询耗时: {} μs", key, (redisEnd - redisStart)/1_000);
         } else {
-            stock = good.getGoodNum();
-            // 写入 Redis，5 分钟过期
-            ops.set(redisKey, stock, 5, TimeUnit.MINUTES);
-            log.info("库存来自数据库，并已写入缓存");
+            // 2) 未命中才查 DB，并写回 Redis（给这个场景 TTL 可以短一些，比如 5 分钟）
+            long dbStart = System.nanoTime();
+            good = goodsMapper.selectById(goodId);
+            long dbEnd = System.nanoTime();
+            if (good == null) return ResponseEntity.notFound().build();
+
+            ops.set(key, good, 5, TimeUnit.MINUTES); // 统一缓存 GoodModel
+            log.info("详情来自 DB(耗时 {} ms)，已写入 Redis: {}", (dbEnd - dbStart)/1_000_000, key);
         }
 
+        // 3) 组装返回（库存直接取对象中的 goodNum）
         GoodStockDTO dto = new GoodStockDTO();
-        dto.setGoodId(good.getGoodID());
-        dto.setGoodName(good.getGoodName());
-        dto.setGoodSize(good.getGoodSize());
-        dto.setGoodPrice(good.getGoodPrice());
-        dto.setGoodNum(stock); // 用缓存/数据库库存
-
-        // 打印计时结果（毫秒换算）
-        log.info("数据库查询耗时: {} ms", (dbEnd - dbStart) / 1_000_000);
-        log.info("Redis 查询耗时: {} μs", (redisEnd - redisStart) / 1_000); // 微秒
-
+        BeanUtils.copyProperties(good, dto);
+        dto.setGoodNum(good.getGoodNum());
         return ResponseEntity.ok(dto);
     }
+
 }

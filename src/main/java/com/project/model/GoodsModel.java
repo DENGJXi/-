@@ -1,5 +1,6 @@
 package com.project.model;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 public class GoodsModel {
@@ -11,6 +12,8 @@ public class GoodsModel {
     protected int goodNum;
     private int isDeleted; // 0=正常，1=已删除
     private int status;    // 0=下架，1=上架
+    private LocalDateTime createTime;
+    private LocalDateTime updateTime;
 
     public GoodsModel() {
     }
